@@ -20,8 +20,14 @@ package de.rwth.idsg.steve.service;
 
 import com.google.common.base.Strings;
 import de.rwth.idsg.steve.NotificationFeature;
+import de.rwth.idsg.steve.SteveException;
+import de.rwth.idsg.steve.repository.UserRepository;
+import de.rwth.idsg.steve.repository.TransactionRepository;
+import de.rwth.idsg.steve.repository.dto.Transaction;
+import de.rwth.idsg.steve.repository.dto.User;
 import de.rwth.idsg.steve.repository.dto.InsertTransactionParams;
 import de.rwth.idsg.steve.repository.dto.MailSettings;
+import de.rwth.idsg.steve.repository.dto.SmsSettings;
 import de.rwth.idsg.steve.repository.dto.UpdateTransactionParams;
 import lombok.extern.slf4j.Slf4j;
 import ocpp.cs._2015._10.RegistrationStatus;
@@ -29,6 +35,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 import static de.rwth.idsg.steve.NotificationFeature.OcppStationBooted;
@@ -48,6 +55,9 @@ import static java.lang.String.format;
 public class NotificationService {
 
     @Autowired private MailService mailService;
+    @Autowired private SmsService smsService;
+    @Autowired private UserRepository userRepository;
+    @Autowired private TransactionRepository transactionRepository;
 
     public void ocppStationBooted(String chargeBoxId, Optional<RegistrationStatus> status) {
         if (isDisabled(OcppStationBooted)) {
@@ -97,12 +107,38 @@ public class NotificationService {
     }
 
     public void ocppTransactionStarted(int transactionId, InsertTransactionParams params) {
+
+        String subject = format("Ladevorgang '%s' wurde an Ladesaeule '%s' am Ladepunkt '%s' gestartet", transactionId, params.getChargeBoxId(), params.getConnectorId());
+
+        try{
+
+            //User zu idTag holen
+            
+            List<User.Overview> userlist = userRepository.getUserToIdTag(params.getIdTag());
+            User.Overview user = userlist.get(0);
+
+            //Mail senden, falls Mail bei Benutzer hinterlegt ist
+            if(!Strings.isNullOrEmpty(user.getEmail())){
+                String mailaddress = user.getEmail();
+                mailService.sendAsync(subject, addTimestamp(createContent(params)), mailaddress);
+            }
+
+            //SMS senden, falls Telefonnummer bei Benutzer hinterlegt ist
+            if(!Strings.isNullOrEmpty(user.getPhone())){
+                String phonenumber = user.getPhone();
+                smsService.sendAsync(subject, phonenumber);
+            }
+
+
+        }catch (Exception e){
+            log.error("Beim Abrufen des Benutzers zum idTag ist ein Fehler aufgetreten.", e);
+        }
+
+        
         if (isDisabled(OcppTransactionStarted)) {
             return;
         }
-
-        String subject = format("Transaction '%s' has started on charging station '%s' on connector '%s'", transactionId, params.getChargeBoxId(), params.getConnectorId());
-
+        
         mailService.sendAsync(subject, addTimestamp(createContent(params)));
     }
 
@@ -116,6 +152,47 @@ public class NotificationService {
         mailService.sendAsync(subject, addTimestamp(createContent(params)));
     }
 
+    public void ocppStationStatusSuspendedEV (String chargeBoxId, int connectorId, String errorCode){
+        //Abfrage der Transaktion (TOP 1), bei der chargeBoxId, connectorId übereinstimmen UND stop_timestamp = NULL ist.
+        List<Transaction> matchingTransactionList = transactionRepository.getDetailsSpecific(chargeBoxId, connectorId);
+        
+        if(!matchingTransactionList.isEmpty()){ //Wenn eine Transaktion gefunden wurde
+            Transaction matchingTransaction = matchingTransactionList.get(0);
+            //User-Infos für idTag aus Transaktion finden
+            try{
+                //User zu idTag holen
+                List<User.Overview> userlist = userRepository.getUserToIdTag(matchingTransaction.getOcppIdTag());
+                if(!userlist.isEmpty()){
+                    User.Overview user = userlist.get(0);
+
+                    String subject = format("Der Ladevorgang '%s' an Ladesaeule '%s' (Ladepunkt '%s') wurde durch das Auto pausiert", matchingTransaction.getId(), matchingTransaction.getChargeBoxId(), matchingTransaction.getConnectorId());
+                    String body = "";
+
+                    //Mail senden, falls Mail bei Benutzer hinterlegt ist
+                    if(!Strings.isNullOrEmpty(user.getEmail())){
+                        mailService.sendAsync(subject, addTimestamp(body), user.getEmail());
+
+                    }
+
+                    //SMS senden
+                    if(!Strings.isNullOrEmpty(user.getPhone())){
+                        smsService.sendAsync(subject, user.getPhone());
+                    }
+                }else{
+                    log.info("SuspendedEV: Dem ID-Tag ist kein Benutzer zugeordnet.");
+                }
+
+            }catch (Exception e){
+                log.error("SuspendedEV: Beim Abrufen des Benutzers zum idTag ist ein Fehler aufgetreten.",e);
+            }
+        }else{
+            log.info("SuspendedEV: Es wurde keine gülitge Transaktion zum Status 'SuspendedEV' gefunden.");
+        }
+        
+        
+        
+        
+    }
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

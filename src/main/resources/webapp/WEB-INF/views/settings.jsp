@@ -82,6 +82,26 @@
             </td></tr>
     </table>
 
+    <section><span>
+        SMS Notification Setting
+        <a class="tooltip" href="#"><img src="${ctxPath}/static/images/info.png" style="vertical-align:middle">
+            <span>SMS Einstellungen festlegen</span>
+        </a>
+    </span></section>
+    <table class="userInputFullPage">
+        <tr><td>Enable Notifications?:</td><td><form:checkbox path="sms_enabled"/></td></tr>
+        <tr><td>Protocol:</td><td><form:input path="sms_protocol"/></td></tr>
+        <tr><td>Host:</td><td><form:input path="sms_host"/></td></tr>
+        <tr><td>Standby Host:</td><td><form:input path="sms_standbyhost"/></td></tr>
+        <tr><td>User name:</td><td><form:input path="sms_username"/></td></tr>
+        <tr><td>Password:</td><td><form:input path="sms_password"/></td></tr>
+
+        <tr><td></td>
+            <td id="add_space">
+                <input type="submit" name="change" value="Change">
+            </td></tr>
+    </table>
+
 </form:form>
 </div>
 <%@ include file="00-footer.jsp" %>

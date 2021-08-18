@@ -22,6 +22,7 @@ import de.rwth.idsg.steve.NotificationFeature;
 import de.rwth.idsg.steve.repository.GenericRepository;
 import de.rwth.idsg.steve.repository.SettingsRepository;
 import de.rwth.idsg.steve.service.MailService;
+import de.rwth.idsg.steve.service.SmsService;
 import de.rwth.idsg.steve.service.ReleaseCheckService;
 import de.rwth.idsg.steve.web.dto.EndpointInfo;
 import de.rwth.idsg.steve.web.dto.SettingsForm;
@@ -52,6 +53,7 @@ public class AboutSettingsController {
     @Autowired private LogController logController;
     @Autowired private SettingsRepository settingsRepository;
     @Autowired private MailService mailService;
+    @Autowired private SmsService smsService;
     @Autowired private ReleaseCheckService releaseCheckService;
 
     // -------------------------------------------------------------------------
@@ -95,6 +97,7 @@ public class AboutSettingsController {
 
         settingsRepository.update(settingsForm);
         mailService.loadSettingsFromDB();
+        smsService.loadSettingsFromDB();
         return "redirect:/manager/settings";
     }
 

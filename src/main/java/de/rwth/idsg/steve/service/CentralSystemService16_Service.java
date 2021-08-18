@@ -142,6 +142,14 @@ public class CentralSystemService16_Service {
                     chargeBoxIdentity, parameters.getConnectorId(), parameters.getErrorCode().value());
         }
 
+        //Benachrichtigung bei Ladevorgang-Ende
+        if (parameters.getStatus().value() == "SuspendedEV"){
+            notificationService.ocppStationStatusSuspendedEV(
+                    chargeBoxIdentity, parameters.getConnectorId(), parameters.getStatus().value());
+        }
+
+
+
         return new StatusNotificationResponse();
     }
 

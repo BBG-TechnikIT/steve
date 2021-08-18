@@ -73,4 +73,13 @@ public class SettingsForm {
     private List<String> recipients;
 
     private List<NotificationFeature> enabledFeatures;
+
+    // -------------------------------------------------------------------------
+    // SMS notification
+    // -------------------------------------------------------------------------
+
+    @NotNull
+    private Boolean sms_enabled;
+
+    private String sms_host, sms_standbyhost, sms_username, sms_password, sms_protocol;
 }

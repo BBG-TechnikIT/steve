@@ -19,6 +19,7 @@
 package de.rwth.idsg.steve.web.controller;
 
 import de.rwth.idsg.steve.repository.ChargePointRepository;
+import de.rwth.idsg.steve.repository.ConnectorRepository;
 import de.rwth.idsg.steve.repository.OcppTagRepository;
 import de.rwth.idsg.steve.repository.ReservationRepository;
 import de.rwth.idsg.steve.repository.ReservationStatus;
@@ -52,6 +53,7 @@ public class TransactionsReservationsController {
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private ReservationRepository reservationRepository;
     @Autowired private ChargePointRepository chargePointRepository;
+    @Autowired private ConnectorRepository connectorRepository;
     @Autowired private OcppTagRepository ocppTagRepository;
     @Autowired private TransactionStopService transactionStopService;
 
@@ -146,6 +148,7 @@ public class TransactionsReservationsController {
     private void initList(Model model) {
         model.addAttribute("cpList", chargePointRepository.getChargeBoxIds());
         model.addAttribute("idTagList", ocppTagRepository.getIdTags());
+        model.addAttribute("cList", connectorRepository.getConnectorIds());
     }
 
     private void initResList(Model model) {

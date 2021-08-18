@@ -238,6 +238,7 @@ public class ChargePointRepositoryImpl implements ChargePointRepository {
                         CHARGE_BOX.CHARGE_BOX_PK,
                         CONNECTOR.CHARGE_BOX_ID,
                         CONNECTOR.CONNECTOR_ID,
+                        CONNECTOR.CONNECTOR_DESCRIPTION,
                         t2.field(t2Ts),
                         t2.field(t2Status),
                         t2.field(t2Error))
@@ -250,14 +251,15 @@ public class ChargePointRepositoryImpl implements ChargePointRepository {
                   .orderBy(t2.field(t2Ts).desc())
                   .fetch()
                   .map(r -> ConnectorStatus.builder()
-                                           .chargeBoxPk(r.value1())
-                                           .chargeBoxId(r.value2())
-                                           .connectorId(r.value3())
-                                           .timeStamp(DateTimeUtils.humanize(r.value4()))
-                                           .statusTimestamp(r.value4())
-                                           .status(r.value5())
-                                           .errorCode(r.value6())
-                                           .build()
+                                            .chargeBoxPk(r.value1())
+                                            .chargeBoxId(r.value2())
+                                            .connectorId(r.value3())
+                                            .connectorDescription(r.value4())
+                                            .timeStamp(DateTimeUtils.humanize(r.value5()))
+                                            .statusTimestamp(r.value5())
+                                            .status(r.value6())
+                                            .errorCode(r.value7())
+                                            .build()
                   );
     }
 

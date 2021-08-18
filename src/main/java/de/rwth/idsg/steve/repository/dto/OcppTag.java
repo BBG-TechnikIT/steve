@@ -33,7 +33,7 @@ public final class OcppTag {
     @Builder
     public static final class Overview {
         private final Integer ocppTagPk, parentOcppTagPk;
-        private final String idTag, parentIdTag, expiryDate;
+        private final String idTag, parentIdTag, expiryDate, customerName;
         private final boolean inTransaction, blocked;
         private final DateTime expiryDateDT;
     }

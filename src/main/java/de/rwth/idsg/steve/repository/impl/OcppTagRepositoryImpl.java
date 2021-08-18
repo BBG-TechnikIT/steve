@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.jooq.DSLContext;
 import org.jooq.JoinType;
-import org.jooq.Record7;
+import org.jooq.Record9;
 import org.jooq.RecordMapper;
 import org.jooq.Result;
 import org.jooq.SelectQuery;
@@ -47,6 +47,7 @@ import static de.rwth.idsg.steve.utils.DateTimeUtils.humanize;
 import static de.rwth.idsg.steve.utils.DateTimeUtils.toDateTime;
 import static jooq.steve.db.tables.OcppTag.OCPP_TAG;
 import static jooq.steve.db.tables.OcppTagActivity.OCPP_TAG_ACTIVITY;
+import static jooq.steve.db.tables.User.USER;
 
 /**
  * @author Sevket Goekay <goekay@dbis.rwth-aachen.de>
@@ -78,10 +79,13 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                 OCPP_TAG_ACTIVITY.PARENT_ID_TAG,
                 OCPP_TAG_ACTIVITY.EXPIRY_DATE,
                 OCPP_TAG_ACTIVITY.IN_TRANSACTION,
-                OCPP_TAG_ACTIVITY.BLOCKED
+                OCPP_TAG_ACTIVITY.BLOCKED,
+                USER.FIRST_NAME,
+                USER.LAST_NAME
         );
 
         selectQuery.addJoin(parentTable, JoinType.LEFT_OUTER_JOIN, parentTable.ID_TAG.eq(OCPP_TAG_ACTIVITY.PARENT_ID_TAG));
+        selectQuery.addJoin(USER, JoinType.LEFT_OUTER_JOIN, USER.OCPP_TAG_PK.eq(OCPP_TAG_ACTIVITY.OCPP_TAG_PK));
 
         if (form.isIdTagSet()) {
             selectQuery.addConditions(OCPP_TAG_ACTIVITY.ID_TAG.eq(form.getIdTag()));
@@ -247,9 +251,9 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
     }
 
     private static class UserMapper
-            implements RecordMapper<Record7<Integer, Integer, String, String, DateTime, Boolean, Boolean>, Overview> {
+            implements RecordMapper<Record9<Integer, Integer, String, String, DateTime, Boolean, Boolean, String, String>, Overview> {
         @Override
-        public Overview map(Record7<Integer, Integer, String, String, DateTime, Boolean, Boolean> r) {
+        public Overview map(Record9<Integer, Integer, String, String, DateTime, Boolean, Boolean, String, String> r) {
             return Overview.builder()
                           .ocppTagPk(r.value1())
                           .parentOcppTagPk(r.value2())
@@ -259,6 +263,7 @@ public class OcppTagRepositoryImpl implements OcppTagRepository {
                           .expiryDate(humanize(r.value5()))
                           .inTransaction(r.value6())
                           .blocked(r.value7())
+                          .customerName(r.value8() + " " + r.value9())
                           .build();
         }
     }

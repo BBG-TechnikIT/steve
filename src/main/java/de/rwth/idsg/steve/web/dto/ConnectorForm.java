@@ -16,30 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package de.rwth.idsg.steve.repository.dto;
+package de.rwth.idsg.steve.web.dto;
 
-import jooq.steve.db.enums.TransactionStopEventActor;
-import lombok.Builder;
 import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
-import org.joda.time.DateTime;
+import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
+import javax.validation.constraints.NotBlank;
 
 /**
- *
- * @author Sevket Goekay <goekay@dbis.rwth-aachen.de>
- *
+ * @author Daniel Christen
+ * @since 24.06.2021
  */
-@Getter
-@Builder
-public final class Transaction {
-    private final int id, connectorId, chargeBoxPk, ocppTagPk;
-    private final String chargeBoxId, ocppIdTag, startTimestamp, startValue, customerName;
-    private final DateTime startTimestampDT;
 
-    @Nullable private final String stopTimestamp;
-    @Nullable private final String stopValue;
-    @Nullable private final String chargedValue;
-    @Nullable private final String stopReason; // new in OCPP 1.6
-    @Nullable private final DateTime stopTimestampDT;
-    @Nullable private final TransactionStopEventActor stopEventActor;
+@Getter
+@Setter
+public class ConnectorForm {
+
+    // Internal database id
+    private Integer connectorPk;
+
+    private String chargeBoxId;
+
+    private Integer connectorId;
+
+    @NotBlank(message = "Connector Description is required")
+    private String connectorDescription;
+
 }

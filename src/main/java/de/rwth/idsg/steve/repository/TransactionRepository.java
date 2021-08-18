@@ -38,6 +38,8 @@ public interface TransactionRepository {
 
     TransactionDetails getDetails(int transactionPk, boolean firstArrivingMeterValueIfMultiple);
 
+    List<Transaction> getDetailsSpecific(String chargeBoxId, int connectorId);
+
     default TransactionDetails getDetails(int transactionPk) {
         return getDetails(transactionPk, true);
     }

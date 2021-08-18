@@ -50,6 +50,14 @@ Transactions
                 </td>
             </tr>
             <tr>
+                <td>Connector ID:</td>
+                <td><form:select path="connectorId">
+                        <option value="" selected>All</option>
+                        <form:options items="${cList}"/>
+                    </form:select>
+                </td>
+            </tr>
+            <tr>
                 <td>OCPP ID Tag:</td>
                 <td><form:select path="ocppIdTag">
                         <option value="" selected>All</option>
@@ -99,11 +107,12 @@ Transactions
                 <th data-sort="int">Transaction ID</th>
                 <th data-sort="string">ChargeBox ID</th>
                 <th data-sort="int">Connector ID</th>
-                <th data-sort="string">OCPP ID Tag</th>
+                <th data-sort="string">Nutzer (OCPP ID Tag)</th>
                 <th data-sort="date">Start Date/Time</th>
-                <th data-sort="int">Start Value</th>
+                <th data-sort="int">Start Value [kWh]</th>
                 <th data-sort="date">Stop Date/Time</th>
-                <th data-sort="int">Stop Value</th>
+                <th data-sort="int">Stop Value [kWh]</th>
+                <th data-sort="int">Charged Value [kWh]</th>
                 <th data-sort="string">Stop Reason</th>
                 <th></th>
             </tr>
@@ -114,11 +123,12 @@ Transactions
                 <td><a href="${ctxPath}/manager/transactions/details/${ta.id}">${ta.id}</a></td>
                 <td><a href="${ctxPath}/manager/chargepoints/details/${ta.chargeBoxPk}">${ta.chargeBoxId}</a></td>
                 <td>${ta.connectorId}</td>
-                <td><a href="${ctxPath}/manager/ocppTags/details/${ta.ocppTagPk}">${ta.ocppIdTag}</a></td>
+                <td>${ta.customerName} (<a href="${ctxPath}/manager/ocppTags/details/${ta.ocppTagPk}">${ta.ocppIdTag}</a>)</td>
                 <td data-sort-value="${ta.startTimestampDT.millis}">${ta.startTimestamp}</td>
                 <td>${ta.startValue}</td>
                 <td data-sort-value="${ta.stopTimestampDT.millis}">${ta.stopTimestamp}</td>
                 <td>${ta.stopValue}</td>
+                <td>${ta.chargedValue}</td>
                 <td>${ta.stopReason}</td>
                 <td>
                     <c:if test="${empty ta.stopValue}">

@@ -87,17 +87,23 @@ public class MailService {
         }
     }
 
-    public void sendAsync(String subject, String body) {
+    public void sendAsync(String subject, String body, String recipient) {
         executorService.execute(() -> {
             try {
-                send(subject, body);
+                send(subject, body, recipient);
             } catch (MessagingException e) {
                 log.error("Failed to send mail", e);
             }
         });
     }
 
-    public void send(String subject, String body) throws MessagingException {
+    //Überladen
+    public void sendAsync(String subject, String body){
+        sendAsync(subject, body, "");
+    }
+
+
+    public void send(String subject, String body, String recipient) throws MessagingException {
         MailSettings settings = getSettings();
 
         Message mail = new MimeMessage(session);
@@ -105,14 +111,27 @@ public class MailService {
         mail.setContent(body, "text/plain");
         mail.setFrom(new InternetAddress(settings.getFrom()));
 
-        for (String rep : settings.getRecipients()) {
-            mail.addRecipient(Message.RecipientType.TO, new InternetAddress(rep));
+
+        if(recipient == ""){
+            for (String rep : settings.getRecipients()) {
+                mail.addRecipient(Message.RecipientType.TO, new InternetAddress(rep));
+            }
+        }else{
+            mail.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
         }
+
+        
 
         try (Transport transport = session.getTransport()) {
             transport.connect();
             transport.sendMessage(mail, mail.getAllRecipients());
+            log.info("MailService: Mail versendet an: '{}' ",recipient);
         }
+    }
+
+    //Überladen
+    public void send(String subject, String body) throws MessagingException {
+        send(subject, body, "");
     }
 
     // -------------------------------------------------------------------------

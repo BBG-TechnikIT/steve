@@ -23,6 +23,7 @@ import de.rwth.idsg.steve.repository.TransactionRepository;
 import de.rwth.idsg.steve.repository.dto.Transaction;
 import de.rwth.idsg.steve.repository.dto.TransactionDetails;
 import de.rwth.idsg.steve.utils.DateTimeUtils;
+import de.rwth.idsg.steve.utils.kWhCalculator;
 import de.rwth.idsg.steve.web.dto.TransactionQueryForm;
 import jooq.steve.db.enums.TransactionStopEventActor;
 import jooq.steve.db.tables.records.ConnectorMeterValueRecord;
@@ -32,6 +33,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record12;
+import org.jooq.Record14;
 import org.jooq.Record9;
 import org.jooq.RecordMapper;
 import org.jooq.SelectQuery;
@@ -49,7 +51,9 @@ import static jooq.steve.db.tables.Connector.CONNECTOR;
 import static jooq.steve.db.tables.ConnectorMeterValue.CONNECTOR_METER_VALUE;
 import static jooq.steve.db.tables.OcppTag.OCPP_TAG;
 import static jooq.steve.db.tables.Transaction.TRANSACTION;
+import static jooq.steve.db.tables.User.USER;
 import static jooq.steve.db.tables.TransactionStart.TRANSACTION_START;
+import static org.jooq.JoinType.LEFT_OUTER_JOIN;
 
 /**
  * @author Sevket Goekay <goekay@dbis.rwth-aachen.de>
@@ -59,10 +63,13 @@ import static jooq.steve.db.tables.TransactionStart.TRANSACTION_START;
 public class TransactionRepositoryImpl implements TransactionRepository {
 
     private final DSLContext ctx;
+    private static kWhCalculator kWhCalculator;
+
 
     @Autowired
     public TransactionRepositoryImpl(DSLContext ctx) {
         this.ctx = ctx;
+        this.kWhCalculator = new kWhCalculator();
     }
 
     @Override
@@ -91,6 +98,19 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<Transaction> getDetailsSpecific(String chargeBoxId, int connectorId){
+        
+        TransactionQueryForm form = new TransactionQueryForm();
+        form.setType(TransactionQueryForm.QueryType.ACTIVE);
+        form.setChargeBoxId(chargeBoxId);
+        form.setConnectorId(connectorId);
+
+        return getInternal(form).fetch()
+                                .map(new TransactionMapper());
+    }
+
+    @Override
     public TransactionDetails getDetails(int transactionPk, boolean firstArrivingMeterValueIfMultiple) {
 
         // -------------------------------------------------------------------------
@@ -102,7 +122,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         form.setType(TransactionQueryForm.QueryType.ALL);
         form.setPeriodType(TransactionQueryForm.QueryPeriodType.ALL);
 
-        Record12<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor>
+        Record14<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor, String, String>
                 transaction = getInternal(form).fetchOne();
 
         if (transaction == null) {
@@ -261,7 +281,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
      */
     @SuppressWarnings("unchecked")
     private
-    SelectQuery<Record12<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor>>
+    SelectQuery<Record14<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor, String, String>>
     getInternal(TransactionQueryForm form) {
 
         SelectQuery selectQuery = ctx.selectQuery();
@@ -269,6 +289,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         selectQuery.addJoin(CONNECTOR, TRANSACTION.CONNECTOR_PK.eq(CONNECTOR.CONNECTOR_PK));
         selectQuery.addJoin(CHARGE_BOX, CHARGE_BOX.CHARGE_BOX_ID.eq(CONNECTOR.CHARGE_BOX_ID));
         selectQuery.addJoin(OCPP_TAG, OCPP_TAG.ID_TAG.eq(TRANSACTION.ID_TAG));
+        selectQuery.addJoin(USER, LEFT_OUTER_JOIN, USER.OCPP_TAG_PK.eq(OCPP_TAG.OCPP_TAG_PK));
         selectQuery.addSelect(
                 TRANSACTION.TRANSACTION_PK,
                 CONNECTOR.CHARGE_BOX_ID,
@@ -281,7 +302,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                 TRANSACTION.STOP_REASON,
                 CHARGE_BOX.CHARGE_BOX_PK,
                 OCPP_TAG.OCPP_TAG_PK,
-                TRANSACTION.STOP_EVENT_ACTOR
+                TRANSACTION.STOP_EVENT_ACTOR,
+                USER.FIRST_NAME,
+                USER.LAST_NAME
         );
 
         return addConditions(selectQuery, form);
@@ -299,6 +322,9 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
         if (form.isOcppIdTagSet()) {
             selectQuery.addConditions(TRANSACTION.ID_TAG.eq(form.getOcppIdTag()));
+        }
+        if (form.isConnectorIdSet()) {
+            selectQuery.addConditions(TRANSACTION.CONNECTOR_ID.eq(form.getConnectorId()));
         }
 
         if (form.getType() == TransactionQueryForm.QueryType.ACTIVE) {
@@ -347,9 +373,10 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         }
     }
 
-    private static class TransactionMapper implements RecordMapper<Record12<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor>, Transaction> {
+    private static class TransactionMapper implements RecordMapper<Record14<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor, String, String>, Transaction> {
         @Override
-        public Transaction map(Record12<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor> r) {
+        public Transaction map(Record14<Integer, String, Integer, String, DateTime, String, DateTime, String, String, Integer, Integer, TransactionStopEventActor, String, String> r) {
+            
             return Transaction.builder()
                               .id(r.value1())
                               .chargeBoxId(r.value2())
@@ -357,14 +384,16 @@ public class TransactionRepositoryImpl implements TransactionRepository {
                               .ocppIdTag(r.value4())
                               .startTimestampDT(r.value5())
                               .startTimestamp(DateTimeUtils.humanize(r.value5()))
-                              .startValue(r.value6())
+                              .startValue(kWhCalculator.convertWhToKwh(r.value6()))
                               .stopTimestampDT(r.value7())
                               .stopTimestamp(DateTimeUtils.humanize(r.value7()))
-                              .stopValue(r.value8())
+                              .stopValue(kWhCalculator.convertWhToKwh(r.value8()))
                               .stopReason(r.value9())
                               .chargeBoxPk(r.value10())
                               .ocppTagPk(r.value11())
                               .stopEventActor(r.value12())
+                              .chargedValue(kWhCalculator.convertWhToKwh(kWhCalculator.subStrings(r.value6(),r.value8())))
+                              .customerName(r.value13() + " " + r.value14())
                               .build();
         }
     }

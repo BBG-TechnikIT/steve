@@ -38,7 +38,7 @@
     <script type="text/javascript" src="${ctxPath}/static/js/jquery-ui-timepicker-addon.min.js" ></script>
     <script type="text/javascript" src="${ctxPath}/static/js/script.js" ></script>
     <script type="text/javascript" src="${ctxPath}/static/js/stupidtable.min.js" ></script>
-    <title>SteVe - Steckdosenverwaltung</title>
+    <title>SteVe - E-Ladesäulen Management</title>
 </head>
 <body>
 <div class="main">
@@ -54,6 +54,7 @@
                     <li><a>DATA MANAGEMENT &raquo;</a>
                         <ul>
                             <li><a href="${ctxPath}/manager/chargepoints">CHARGE POINTS</a></li>
+                            <li><a href="${ctxPath}/manager/connectors">CONNECTORS</a></li>
                             <li><a href="${ctxPath}/manager/ocppTags">OCPP TAGS</a></li>
                             <li><a href="${ctxPath}/manager/users">USERS</a></li>
                             <li><a href="${ctxPath}/manager/chargingProfiles">CHARGING PROFILES</a></li>

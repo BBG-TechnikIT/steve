@@ -22,6 +22,7 @@ import de.rwth.idsg.steve.NotificationFeature;
 import de.rwth.idsg.steve.SteveException;
 import de.rwth.idsg.steve.repository.SettingsRepository;
 import de.rwth.idsg.steve.repository.dto.MailSettings;
+import de.rwth.idsg.steve.repository.dto.SmsSettings;
 import de.rwth.idsg.steve.web.dto.SettingsForm;
 import jooq.steve.db.tables.records.SettingsRecord;
 import org.jooq.DSLContext;
@@ -74,6 +75,12 @@ public class SettingsRepositoryImpl implements SettingsRepository {
                            .port(r.getMailPort())
                            .recipients(eMails)
                            .enabledFeatures(features)
+                           .sms_enabled(r.getSmsEnabled())
+                           .sms_host(r.getSmsHost())
+                           .sms_standbyhost(r.getSmsStandbyhost())
+                           .sms_username(r.getSmsUsername())
+                           .sms_password(r.getSmsPassword())
+                           .sms_protocol(r.getSmsProtocol())
                            .build();
 
     }
@@ -95,6 +102,20 @@ public class SettingsRepositoryImpl implements SettingsRepository {
                            .port(r.getMailPort())
                            .recipients(eMails)
                            .enabledFeatures(features)
+                           .build();
+    }
+
+    @Override
+    public SmsSettings getSmsSettings() {
+        SettingsRecord r = getInternal();
+
+        return SmsSettings.builder()
+                           .enabled(r.getSmsEnabled())
+                           .host(r.getSmsHost())
+                           .standbyHost(r.getSmsStandbyhost())
+                           .username(r.getSmsUsername())
+                           .password(r.getSmsPassword())
+                           .protocol(r.getSmsProtocol())
                            .build();
     }
 
@@ -126,6 +147,12 @@ public class SettingsRepositoryImpl implements SettingsRepository {
                .set(SETTINGS.MAIL_PORT, form.getPort())
                .set(SETTINGS.MAIL_RECIPIENTS, eMails)
                .set(SETTINGS.NOTIFICATION_FEATURES, features)
+               .set(SETTINGS.SMS_ENABLED, form.getSms_enabled())
+               .set(SETTINGS.SMS_HOST, form.getSms_host())
+               .set(SETTINGS.SMS_USERNAME, form.getSms_username())
+               .set(SETTINGS.SMS_PASSWORD, form.getSms_password())
+               .set(SETTINGS.SMS_STANDBYHOST, form.getSms_standbyhost())
+               .set(SETTINGS.SMS_PROTOCOL, form.getSms_protocol())
                .where(SETTINGS.APP_ID.eq(APP_ID))
                .execute();
 

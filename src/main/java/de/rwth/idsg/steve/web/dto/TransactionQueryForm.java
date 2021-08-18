@@ -36,6 +36,7 @@ public class TransactionQueryForm extends QueryForm {
     // Internal database Id
     private Integer transactionPk;
 
+    private Integer connectorId;
     private boolean returnCSV;
 
     @NotNull(message = "Query type is required")
@@ -59,6 +60,10 @@ public class TransactionQueryForm extends QueryForm {
 
     public boolean isTransactionPkSet() {
         return transactionPk != null;
+    }
+
+    public boolean isConnectorIdSet() {
+        return connectorId != null;
     }
 
     // -------------------------------------------------------------------------

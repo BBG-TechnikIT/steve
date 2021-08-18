@@ -73,6 +73,25 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<User.Overview> getUserToIdTag(String idTag) {
+        
+        UserQueryForm form = new UserQueryForm();
+        form.setOcppIdTag(idTag);
+        
+        return getOverviewInternal(form)
+                .map(r -> User.Overview.builder()
+                                       .userPk(r.value1())
+                                       .ocppTagPk(r.value2())
+                                       .ocppIdTag(r.value3())
+                                       .name(r.value4() + " " + r.value5())
+                                       .phone(r.value6())
+                                       .email(r.value7())
+                                       .build()
+                );
+
+    }
+
+    @Override
     public User.Details getDetails(int userPk) {
 
         // -------------------------------------------------------------------------

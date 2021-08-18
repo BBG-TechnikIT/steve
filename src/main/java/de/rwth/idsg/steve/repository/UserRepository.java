@@ -31,6 +31,7 @@ import java.util.List;
 public interface UserRepository {
     List<User.Overview> getOverview(UserQueryForm form);
     User.Details getDetails(int userPk);
+    List<User.Overview> getUserToIdTag(String idTag);
 
     void add(UserForm form);
     void update(UserForm form);

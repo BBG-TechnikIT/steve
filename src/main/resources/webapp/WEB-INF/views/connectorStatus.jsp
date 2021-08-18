@@ -66,6 +66,7 @@ Connector Status
 		<tr>
 			<th data-sort="string">ChargeBox ID</th>
 			<th data-sort="int">Connector ID</th>
+			<th data-sort="string">Connector Name</th>
 			<th data-sort="date">Date/Time</th>
 			<th data-sort="string">Status</th>
 			<th data-sort="string">Error Code</th>
@@ -76,6 +77,7 @@ Connector Status
 			<tr>
 				<td><a href="${ctxPath}/manager/chargepoints/details/${cs.chargeBoxPk}">${cs.chargeBoxId}</a></td>
 				<td>${cs.connectorId}</td>
+				<td>${cs.connectorDescription}</td>
 				<td data-sort-value="${cs.statusTimestamp.millis}">${cs.timeStamp}</td>
 				<td>${cs.status}</td>
 				<td>${cs.errorCode}</td>
