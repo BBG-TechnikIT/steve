@@ -20,7 +20,7 @@
 --%>
 </div></div>
 <div class="footer">
-	<a href="https://pmsweb/pmsweb"><img src="${ctxPath}/static/images/logo_bbg.png"></a>
+	<a href="https://pmsweb.bitburger-braugruppe.de/"><img src="${ctxPath}/static/images/logo_bbg.png"></a>
 	<a href="http://dbis.rwth-aachen.de"><img src="${ctxPath}/static/images/logo_rwth.png"></a>
 </div>
 </body>
