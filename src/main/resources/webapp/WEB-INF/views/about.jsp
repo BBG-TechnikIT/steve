@@ -29,7 +29,7 @@
     </c:if>
 <table class="userInputFullPage">
 	<tr><td>Version:</td><td>${version}</td></tr>
-    <tr><td>Interne Version:</td><td>1.0.0</td></tr>
+    <tr><td>Interne Version:</td><td>1.0.1</td></tr>
 	<tr><td>Database Version:</td><td>${db.version}</td></tr>
 	<tr><td>Last Database Update:</td><td>${db.updateTimestamp}</td></tr>
     <tr><td>Log File:</td><td>${logFile}</td></tr>
